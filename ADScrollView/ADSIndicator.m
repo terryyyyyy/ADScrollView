@@ -1,19 +1,17 @@
 //
-//  FAFAdsIndicator.m
-//  FAFFramework
+//  AdsIndicator.m
 //
-//  Created by iecd on 15/12/21.
-//  Copyright © 2015年 SnowWolfSoftware. All rights reserved.
+//  Created by everyWood on 15/12/21.
 //
 
-#import "FAFAdsIndicator.h"
+#import "ADSIndicator.h"
 
-@interface FAFAdsIndicator()
+@interface ADSIndicator()
 
 /**
  *  索引的类型
  */
-@property (nonatomic,assign) FAFAdsIndicatorType indicatorType;
+@property (nonatomic,assign) AdsIndicatorType indicatorType;
 
 
 @property (nonatomic,strong)UILabel *indexLabel;
@@ -21,9 +19,9 @@
 @property (nonatomic,assign) NSInteger totalNum;
 @end
 
-@implementation FAFAdsIndicator
+@implementation ADSIndicator
 
-- (instancetype)initWithADViewFrame:(CGRect)frame alignment:(IndicatorAlignment)alignment totalNum:(NSInteger)totalNum andType:(FAFAdsIndicatorType)type
+- (instancetype)initWithADViewFrame:(CGRect)frame alignment:(IndicatorAlignment)alignment totalNum:(NSInteger)totalNum andType:(AdsIndicatorType)type
 {
     CGFloat barHeight = 20;
     CGFloat y = frame.origin.y + frame.size.height - barHeight;
@@ -35,11 +33,11 @@
         self.frame = selfFrame;
         self.backgroundColor = [UIColor clearColor];
         switch (type) {
-            case FAFAdsIndicatorTypeNone: {
+            case AdsIndicatorTypeNone: {
                 [self removeFromSuperview];
                 break;
             }
-            case FAFAdsIndicatorTypeNumber: {
+            case AdsIndicatorTypeNumber: {
                 self.indexLabel = [[UILabel alloc]initWithFrame:self.bounds];
                 _indexLabel.font = [UIFont boldSystemFontOfSize:16];
                 switch (alignment) {
@@ -67,7 +65,7 @@
                 [self addSubview:_indexLabel];
                 break;
             }
-            case FAFAdsIndicatorTypeWhiteDot: {
+            case AdsIndicatorTypeWhiteDot: {
                 self.pageView = [[UIPageControl alloc] init];
                 _pageView.numberOfPages = totalNum;
                 CGSize pageSize = [_pageView sizeForNumberOfPages:totalNum];
@@ -104,16 +102,16 @@
 {
     _currentIndex = currentIndex;
     switch (self.indicatorType) {
-        case FAFAdsIndicatorTypeNone: {
+        case AdsIndicatorTypeNone: {
             
             break;
         }
-        case FAFAdsIndicatorTypeNumber: {
+        case AdsIndicatorTypeNumber: {
             if (!self.indexLabel) break;
             self.indexLabel.text = [NSString stringWithFormat:@"%ld/%ld",currentIndex,_totalNum];
             break;
         }
-        case FAFAdsIndicatorTypeWhiteDot: {
+        case AdsIndicatorTypeWhiteDot: {
             if (!self.pageView) break;
             self.pageView.currentPage = currentIndex - 1;
             break;

@@ -1,17 +1,15 @@
 //
-//  FAFAdsIndicator.h
-//  FAFFramework
+//  AdsIndicator.h
 //
-//  Created by iecd on 15/12/21.
-//  Copyright © 2015年 SnowWolfSoftware. All rights reserved.
+//  Created by everyWood on 15/12/21.
 //
 
 #import <UIKit/UIKit.h>
 
-typedef NS_ENUM(NSUInteger, FAFAdsIndicatorType) {
-    FAFAdsIndicatorTypeNone,
-    FAFAdsIndicatorTypeNumber,
-    FAFAdsIndicatorTypeWhiteDot
+typedef NS_ENUM(NSUInteger, AdsIndicatorType) {
+    AdsIndicatorTypeNone,
+    AdsIndicatorTypeNumber,
+    AdsIndicatorTypeWhiteDot
 };
 
 typedef NS_ENUM(NSUInteger, IndicatorAlignment) {
@@ -19,7 +17,7 @@ typedef NS_ENUM(NSUInteger, IndicatorAlignment) {
     IndicatorAlignmentMiddle = 0,
     IndicatorAlignmentRight = 1
 };
-@interface FAFAdsIndicator : UIView
+@interface ADSIndicator : UIView
 
 /**
  *  当前展示的广告的索引
@@ -35,6 +33,6 @@ typedef NS_ENUM(NSUInteger, IndicatorAlignment) {
  *
  *  @return 返回索引
  */
-- (instancetype)initWithADViewFrame:(CGRect)frame alignment:(IndicatorAlignment)alignment totalNum:(NSInteger)totalNum andType:(FAFAdsIndicatorType)type;
+- (instancetype)initWithADViewFrame:(CGRect)frame alignment:(IndicatorAlignment)alignment totalNum:(NSInteger)totalNum andType:(AdsIndicatorType)type;
 
 @end

@@ -2,15 +2,18 @@
 //  FAFAdsView.m
 //  
 //
-//  Created by LiuBo on 15/12/16.
-//  Copyright © 2015年 SnowWolfSoftware. All rights reserved.
+//  Created by everyWood on 15/12/16.
 //
 
-#import "FAFAdsView.h"
-#import "SDWebImageManager+FAF.h"
-#define IsURLStr(str)  [str containsString:@"://"]
 
-@interface FAFAdsView()
+#import "ADScrollView.h"
+#import "SDWebImageManager.h"
+#import "UIImageView+WebCache.h"
+
+#define IsURLStr(str)  [str containsString:@"://"]
+#define AssertNotNil(condition, description, ...) NSAssert((condition), (description), ##__VA_ARGS__)
+
+@interface ADScrollView()
 /**
  *  展示的图片数组，内装图片的链接或者图片的名字
  */
@@ -19,7 +22,7 @@
 /**
  *  监听图片点击事件的代理
  */
-@property (nonatomic,weak)id<FAFADsViewDelegate> ADsDelegate;
+@property (nonatomic,weak)id<ADScrollViewDelegate> ADsDelegate;
 
 @property (nonatomic,assign) CGFloat width;
 @property (nonatomic,assign) CGFloat height;
@@ -34,32 +37,34 @@
 @property (nonatomic,strong)UIImageView *currentImageView;
 @property (nonatomic,strong)UIImageView *nextImageView;
 //索引
-@property (nonatomic,strong)FAFAdsIndicator *indicator;
+@property (nonatomic,strong)ADSIndicator *indicator;
+/**索引的对齐方式，默认为居中对齐*/
+@property (nonatomic,assign) IndicatorAlignment indicatorAlignment;
 @end
-@implementation FAFAdsView
+@implementation ADScrollView
 
 - (instancetype)initWithFrame:(CGRect)frame
                        Photos:(NSArray *)photos
-                     delegate:(id<FAFADsViewDelegate>)delegate
+                     delegate:(id<ADScrollViewDelegate>)delegate
                placeHolderStr:(NSString *)placeHolder
 {
-   return [self initWithFrame:frame Photos:photos delegate:delegate placeHolderStr:placeHolder indicatorType:FAFAdsIndicatorTypeNone indicatorAlignment:0];
+   return [self initWithFrame:frame Photos:photos delegate:delegate placeHolderStr:placeHolder indicatorType:AdsIndicatorTypeNone indicatorAlignment:0];
 }
 
 - (instancetype)initWithFrame:(CGRect)frame
                        Photos:(NSArray *)photos
-                     delegate:(id<FAFADsViewDelegate>)delegate
+                     delegate:(id<ADScrollViewDelegate>)delegate
                placeHolderStr:(NSString *)placeHolder
-                indicatorType:(FAFAdsIndicatorType)type
+                indicatorType:(AdsIndicatorType)type
 {
     return [self initWithFrame:frame Photos:photos delegate:delegate placeHolderStr:placeHolder indicatorType:type  indicatorAlignment:IndicatorAlignmentMiddle];
 }
 
 - (instancetype)initWithFrame:(CGRect)frame
                        Photos:(NSArray *)photos
-                     delegate:(id<FAFADsViewDelegate>)delegate
+                     delegate:(id<ADScrollViewDelegate>)delegate
                placeHolderStr:(NSString *)placeHolder
-                indicatorType:(FAFAdsIndicatorType)type
+                indicatorType:(AdsIndicatorType)type
            indicatorAlignment:(IndicatorAlignment)alignment
 {
     if (!(self = [super initWithFrame:frame])) {
@@ -67,9 +72,13 @@
     }
     //开始下载所有图片,是链接的就下载，不是链接的就不用了
     for (NSString *imageName in photos) {
-        FAFAssertNotNil([imageName isKindOfClass:[NSString class]], @"%@ is not a NSString Class",imageName);
+        AssertNotNil([imageName isKindOfClass:[NSString class]], @"%@ is not a NSString Class",imageName);
         if (IsURLStr(imageName)) {
-            [SDWebImageManager downloadWithURL:[NSURL URLWithString:imageName]];
+            [[SDWebImageManager sharedManager] downloadImageWithURL:[NSURL URLWithString:imageName] options:SDWebImageLowPriority|SDWebImageRetryFailed progress:^(NSInteger receivedSize, NSInteger expectedSize) {
+                
+            } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
+                
+            }];
         }
     }
     //存储相关属性
@@ -81,7 +90,7 @@
     self.indicatorAlignment = alignment;
     
     //添加索引
-    [self addIndicatorWihtType:(type || (photos.count != 1)) ? type : FAFAdsIndicatorTypeNone];
+    [self addIndicatorWihtType:(type || (photos.count != 1)) ? type : AdsIndicatorTypeNone];
 
     //设置滑动属性
     [self setScrollView];
@@ -90,9 +99,9 @@
 }
 
 //添加索引条
-- (void)addIndicatorWihtType:(FAFAdsIndicatorType)type
+- (void)addIndicatorWihtType:(AdsIndicatorType)type
 {
-    self.indicator = [[FAFAdsIndicator alloc] initWithADViewFrame:self.frame alignment:self.indicatorAlignment totalNum:self.photos.count andType:type];
+    self.indicator = [[ADSIndicator alloc] initWithADViewFrame:self.frame alignment:self.indicatorAlignment totalNum:self.photos.count andType:type];
     //在自己添加上去之后再添加索引条，不然会被挡着
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [self.superview addSubview:self.indicator];
@@ -171,16 +180,16 @@ static CGFloat originalOffsetX = -1;
     }
     originalOffsetX = scrollView.contentOffset.x;
 }
-//需要打开时可以打开
-//- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
-//{
-//    [self invalidateTimer];
-//}
-//
-//- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
-//{
-//    [self startTimer];
-//}
+
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
+{
+    [self invalidateTimer];
+}
+
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
+{
+    [self startTimer];
+}
 
 #pragma mark - 私有方法
 
@@ -224,7 +233,7 @@ static CGFloat originalOffsetX = -1;
     //只有一张图就好办了
     if (self.photos.count <= 1) {
         if (IsURLStr(self.photos[0])) {
-            [self.currentImageView faf_setImageWithURL:[NSURL URLWithString:self.photos[0]] placeholderImage:[UIImage imageNamed:self.placeHolderStr]];
+            [self.currentImageView sd_setImageWithURL:[NSURL URLWithString:self.photos[0]] placeholderImage:[UIImage imageNamed:self.placeHolderStr]];
         }else
         {
             self.currentImageView.image = [UIImage imageNamed:self.photos[0]];
@@ -235,7 +244,7 @@ static CGFloat originalOffsetX = -1;
     void (^showPhototAt)(UIImageView *,NSInteger) = ^(UIImageView *imageView, NSInteger index){
         NSString *urlStr = self.photos[index - 1];
         if (IsURLStr(urlStr)) {
-            [imageView faf_setImageWithURL:[NSURL URLWithString:urlStr] placeholderImage:[UIImage imageNamed:self.placeHolderStr]];
+            [imageView sd_setImageWithURL:[NSURL URLWithString:urlStr] placeholderImage:[UIImage imageNamed:self.placeHolderStr]];
         }else
         {
             imageView.image = [UIImage imageNamed:urlStr];
@@ -251,7 +260,7 @@ static CGFloat originalOffsetX = -1;
 //选择当前的图片广告
 - (void)singleTap
 {
-    [self.ADsDelegate performSelector:@selector(ADsViewDidSelectImageOfIndex:) withObject:[NSNumber numberWithInteger:self.currentShowingIndex]];
+    [self.ADsDelegate ADsView:self didSelectImageOfIndex:[NSNumber numberWithInteger:self.currentShowingIndex]];
 }
 
 - (void)setTimeIntevel:(CGFloat)timeIntevel

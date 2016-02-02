@@ -67,6 +67,7 @@
             }
             case AdsIndicatorTypeWhiteDot: {
                 self.pageView = [[UIPageControl alloc] init];
+                self.pageView.userInteractionEnabled = NO;
                 _pageView.numberOfPages = totalNum;
                 CGSize pageSize = [_pageView sizeForNumberOfPages:totalNum];
                 switch (alignment) {
